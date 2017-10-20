@@ -1,0 +1,89 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Oct 19 19:14:08 2017
+
+@author: Christopher
+from pythonprogramminglanguage.com
+"""
+
+from sklearn.cluster import KMeans
+from sklearn import metrics
+from scipy.spatial.distance import cdist
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+
+#data set
+x1 = np.array([3, 1, 1, 2, 1, 6, 6, 6, 5, 6, 7, 8, 9, 8, 9, 9, 8])
+x2 = np.array([5, 4, 5, 6, 5, 8, 6, 7, 6, 7, 1, 2, 1, 2, 3, 2, 3])
+
+#plots unclustered data set 
+plt.plot()
+plt.xlim([0, 10])
+plt.ylim([0, 10])
+plt.title('Dataset')
+plt.xlabel('Percent of Pot Bet')
+plt.ylabel('Ratio of Pot Bet to True Value')
+plt.scatter(x1, x2)
+plt.show()
+
+# create new plot and data
+plt.plot()
+X = np.array(list(zip(x1, x2))).reshape(len(x1), 2)
+colors = ['b', 'g', 'r']
+
+
+
+
+# runs k means with various k values to determine the best possible k value 
+#distortions discusses the distance from each point to the center of each cluster
+distortions = []
+K = range(1,10)
+for k in K:
+    kmeanModel = KMeans(n_clusters=k).fit(X)
+    kmeanModel.fit(X)
+    distortions.append(sum(np.min(cdist(X,kmeanModel.cluster_centers_,'euclidean'),axis=1))/X.shape[0])
+#calculates the slope between each of the k values and finds the k value which is the elbow point 
+#which is the optimal k value
+
+slopes = [0]*(len(distortions)-1) 
+slopeTotal = 0
+for i in range (1,len(distortions)):
+    changeY = distortions[i] - distortions[i-1]
+    changeX = 1
+    slope = changeY/changeX
+    slope = np.abs(slope)
+    slopes[i-1] = slope
+    slopeTotal = slope + slopeTotal
+avgSlope = slopeTotal/(len(slopes))
+for n in range(len(slopes)):
+    if(slopes[n]<avgSlope):
+        optimalK = n + 1
+        break
+
+# Creates a plot of k value vs distortion which is the elbow 
+plt.plot(K, distortions, 'bx-')
+plt.axvline(x=optimalK,color='r',linestyle='dashed')
+plt.xlabel('k value')
+plt.ylabel('Distortion Value')
+plt.title('The Elbow Method showing the optimal k')
+plt.show()
+
+#plots the data set clustered according to the optimal k from the elbow method 
+plt.plot()
+clusterGroups = KMeans(n_clusters=optimalK).fit_predict(X)
+for i in range (len(X)):
+    colorSpot = clusterGroups[i]
+    colorPoint = colors[colorSpot]
+    point = X[i]
+    x = point[0]
+    y = point[1]
+    plt.scatter(x,y, c=colorPoint)
+    
+plt.title('Clustered Dataset')
+plt.xlabel('Percent of Pot Bet')
+plt.ylabel('Ratio of Percent of Pot Bet to the True Value')
+
+
+
+
